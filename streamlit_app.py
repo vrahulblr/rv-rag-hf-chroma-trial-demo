@@ -21,8 +21,8 @@ from langchain.text_splitter import CharacterTextSplitter
 
 st.title("Query an SEC filing by a listed company")
 st.markdown("**Insert HTML links to SEC filings (like 10Ks, 10Qs from companies) and ask questions.**")
-st.subheader("Enter the URL of filing you wish to query")
-user_input = st.text_input("Enter the URL and then the question, separated by comma", type="default")
+# st.subheader("Enter the URL of filing you wish to query")
+user_input = st.text_input("Enter your Huggingface API KEY,the URL, the question, separated by commas and no spaces", type="default")
 fetch_button = st.button("Fetch answer")
 try:
     user_input_as_list = user_input.split(",")
@@ -93,6 +93,8 @@ try:
     headers = {"Authorization": f"Bearer {API_KEY}"}
     output = query(API_URL, headers, {"inputs": str(message),"wait_for_model": True})
     st.divider()
+    st.divider()
+    st.subheader("The LLM has the following answer to your question, based on context retrieved from your URL")
     st.write(output[0]['generated_text'].split("]")[1])
 except Exception as e:
     pass
