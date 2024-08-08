@@ -95,6 +95,6 @@ try:
     st.divider()
     st.divider()
     st.subheader("The LLM has the following answer to your question, based on context retrieved from your URL")
-    st.write(output[0]['generated_text'].split("]")[1])
+    st.write(output[0]['generated_text'])
 except Exception as e:
     pass
