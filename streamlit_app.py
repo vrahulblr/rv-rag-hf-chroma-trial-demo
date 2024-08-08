@@ -26,18 +26,25 @@ user_input = st.text_input("Enter the URL and then the question, separated by co
 fetch_button = st.button("Fetch answer")
 try:
     user_input_as_list = user_input.split(",")
-    url = user_input_as_list[0]
-    question = user_input_as_list[1]
+    API_KEY = user_input_as_list[0]
+    url = user_input_as_list[1]
+    question = user_input_as_list[2]
 except Exception as e:
     print("Awaiting user input")
-# print("URL is", url)
-# print("question is", question)
-# title = 'sample title'
-# text = 'sample text'
+
 
 title = []
 text = []
 # db = []
+
+
+def query(API_URL, headers, payload):
+    response = requests.post(API_URL, headers=headers, json=payload)
+    return response.json()
+
+
+
+answer_to_print = []
 
 if fetch_button:
     article = Article(url)
@@ -68,26 +75,24 @@ try:
     db = FAISS.from_documents(docs, embeddings)
     print("written to vectordb")
     searchDocs = db.similarity_search(question)
-    answer_to_print = searchDocs[0].page_content
+    answer_to_print.append(searchDocs[0].page_content)
     st.divider()
-    st.write(f"Your answer from filing numbered **{title[0]}**")
-    st.write(f"**{answer_to_print}**")
+    st.write(f"The relevant document (chunk) from filing numbered **{title[0]}**")
+    st.write(f"**{answer_to_print[0]}**")
 except Exception as e:
     pass
-# print("type of db, and of first entity in db", type(db), type(db[0]), "length", len(db))
-
-# question = "How many retail stores Nike has?"
 
 
-# if submit_button:
-#     print("submit button hit recorded", question)
-#     try:
-#         dbref = db[0]
-#         searchDocs = dbref.similarity_search(question)
-#         print("semantic search underway")
-#         answer_to_print = searchDocs[0].page_content
-#         st.divider()
-#         st.write(f"Your answer from filing numbered **{title[0]}**")
-#         st.write(f"**{answer_to_print}**")
-#     except Exception as e:
-#         print("exception on submit button")
+try:
+    # print(type(answer_to_print[0]), len(answer_to_print[0]), answer_to_print)
+    message = [
+        {"role": "system", "content": "You are an AI assistant that helps people find information. Answer questions using a direct style. Do not share more information that the requested by the users. Respond back in 1 sentence. Here is the context: " + f"{answer_to_print[0]}" + "Now answer the following question from the user"},
+        {"role": "user", "content": f"{user_input_as_list[2]}"},
+    ]
+    API_URL = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct"
+    headers = {"Authorization": f"Bearer {API_KEY}"}
+    output = query(API_URL, headers, {"inputs": str(message),"wait_for_model": True})
+    st.divider()
+    st.write(output[0]['generated_text'].split("]")[1])
+except Exception as e:
+    pass
