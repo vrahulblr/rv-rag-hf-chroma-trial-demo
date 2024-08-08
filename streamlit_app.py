@@ -22,10 +22,10 @@ from langchain.text_splitter import CharacterTextSplitter
 st.title("Query an SEC filing by a listed company")
 st.markdown("**Insert HTML links to SEC filings (like 10Ks, 10Qs from companies) and ask questions.**")
 # st.subheader("Enter the URL of filing you wish to query")
-user_input = st.text_input("Enter your Huggingface API KEY,the URL, the question, separated by commas and no spaces", type="default")
+user_input = st.text_input("Enter your Huggingface API KEY,the URL, the question, separated by commas", type="default")
 fetch_button = st.button("Fetch answer")
 try:
-    user_input_as_list = user_input.split(",")
+    user_input_as_list = user_input.split(",").strip()
     API_KEY = user_input_as_list[0]
     url = user_input_as_list[1]
     question = user_input_as_list[2]
