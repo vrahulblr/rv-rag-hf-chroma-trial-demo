@@ -19,19 +19,24 @@ from langchain.text_splitter import CharacterTextSplitter
 
 # question = st.text_input("Enter a question that you want answered from the filing", type="default")
 
-st.title("Query an SEC filing by a listed company")
-st.markdown("**Insert HTML links to SEC filings (like 10Ks, 10Qs from companies) and ask questions.**")
+st.title("Simple app to demonstrate Retrieval Augmented Generation, fondly known as RAG")
+st.markdown("Enter a URL that you want the app to use as context, and the question you want answered")
 # st.subheader("Enter the URL of filing you wish to query")
-user_input = st.text_input("Enter your Huggingface API KEY,the URL, the question, separated by commas and no spaces", type="default")
-fetch_button = st.button("Fetch answer")
-try:
-    user_input_as_list = user_input.split(",")
-    API_KEY = user_input_as_list[0]
-    url = user_input_as_list[1]
-    question = user_input_as_list[2]
-except Exception as e:
-    print("Awaiting user input")
+# user_input = st.text_input("Enter your Huggingface API KEY,the URL, the question, separated by commas and no spaces", type="default")
+# fetch_button = st.button("Fetch answer")
+# try:
+#     user_input_as_list = user_input.split(",")
+#     API_KEY = user_input_as_list[0]
+#     url = user_input_as_list[1]
+#     question = user_input_as_list[2]
+# except Exception as e:
+#     print("Awaiting user input")
 
+with st.form("user_inputs_for_rag_form", clear_on_submit=False):
+    API_KEY = st.text_input("Insert your Hugging Face Access Token here")
+    url = st.text_input("Insert the URL you would like to provide as context")
+    question = st.text_input("Your question here")
+    submit = st.form_submit_button("Submit")
 
 title = []
 text = []
@@ -46,13 +51,13 @@ def query(API_URL, headers, payload):
 
 answer_to_print = []
 
-if fetch_button:
+if submit:
     article = Article(url)
     article.download()
     article.parse()
     title.append(article.title)
     text.append(article.text)
-    print("type and length of text", type(text[0]), len(text[0]))
+    # print("type and length of text", type(text[0]), len(text[0]))
 
 try:
     doc_creator = CharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
@@ -87,14 +92,15 @@ try:
     # print(type(answer_to_print[0]), len(answer_to_print[0]), answer_to_print)
     message = [
         {"role": "system", "content": "You are an AI assistant that helps people find information. Answer questions using a direct style. Do not share more information that the requested by the users. Respond back in 1 sentence. Here is the context: " + f"{answer_to_print[0]}" + "Now answer the following question from the user"},
-        {"role": "user", "content": f"{user_input_as_list[2]}"},
+        {"role": "user", "content": f"{question}"},
     ]
     API_URL = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct"
     headers = {"Authorization": f"Bearer {API_KEY}"}
     output = query(API_URL, headers, {"inputs": str(message),"wait_for_model": True})
     st.divider()
-    st.divider()
     st.subheader("The LLM has the following answer to your question, based on context retrieved from your URL")
     st.write(output[0]['generated_text'])
+    st.divider()
+    st.markdown("Remember to include an Output Parser to get a neatly formatted answer")
 except Exception as e:
     pass
